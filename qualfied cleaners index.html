@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qualified Cleaners</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F6F3;
+    --surface: #FFFFFF;
+    --border: #E2E0DA;
+    --text: #1A1A18;
+    --muted: #6B6B67;
+    --accent: #2355A0;
+    --accent-light: #EBF0FA;
+    --accent-text: #1A3D7A;
+    --success: #1A7A4A;
+    --success-light: #EBF7F1;
+    --chip-sel-bg: #EBF0FA;
+    --chip-sel-border: #2355A0;
+    --chip-sel-text: #1A3D7A;
+    --name-sel-bg: #EBF7F1;
+    --name-sel-border: #1A7A4A;
+    --name-sel-text: #1A7A4A;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 560px;
+  }
+
+  .progress {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 2rem;
+  }
+  .dot {
+    height: 3px;
+    flex: 1;
+    border-radius: 2px;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+  .dot.active { background: var(--accent); }
+  .dot.done { background: var(--accent); opacity: 0.4; }
+
+  .step { display: none; }
+  .step.active { display: block; }
+
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    margin-bottom: 0.35rem;
+  }
+  .sub {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+  }
+
+  select {
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    font-size: 15px;
+    background: var(--surface);
+    color: var(--text);
+    margin-bottom: 1.5rem;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B6B67' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+  }
+  select:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+
+  .cat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .cat-card {
+    padding: 1rem 0.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    background: var(--surface);
+    text-align: center;
+    transition: border-color 0.15s, background 0.15s;
+    user-select: none;
+  }
+  .cat-card:hover { border-color: #BCBAB4; }
+  .cat-card.selected { background: var(--accent-light); border-color: var(--accent); }
+  .cat-icon { font-size: 24px; margin-bottom: 6px; }
+  .cat-label { font-size: 13px; font-weight: 600; color: var(--text); }
+  .cat-card.selected .cat-label { color: var(--accent-text); }
+  .cat-sub { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.3; }
+  .cat-card.selected .cat-sub { color: var(--accent-text); opacity: 0.8; }
+
+  .chip-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 1.5rem;
+    max-height: 340px;
+    overflow-y: auto;
+    padding-right: 2px;
+  }
+  .chip {
+    padding: 6px 13px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    font-size: 13px;
+    cursor: pointer;
+    background: var(--surface);
+    color: var(--text);
+    transition: all 0.12s;
+    user-select: none;
+    white-space: nowrap;
+  }
+  .chip:hover { border-color: #BCBAB4; }
+  .chip.selected {
+    background: var(--chip-sel-bg);
+    color: var(--chip-sel-text);
+    border-color: var(--chip-sel-border);
+  }
+
+  .name-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 7px;
+    margin-bottom: 1.5rem;
+    max-height: 380px;
+    overflow-y: auto;
+  }
+  .name-btn {
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    font-size: 13px;
+    cursor: pointer;
+    background: var(--surface);
+    color: var(--text);
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.12s;
+    font-family: inherit;
+  }
+  .name-btn:hover { border-color: #BCBAB4; }
+  .name-btn.selected {
+    background: var(--name-sel-bg);
+    color: var(--name-sel-text);
+    border-color: var(--name-sel-border);
+  }
+  .check-circle {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 9px;
+    font-weight: 700;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .btn-primary {
+    padding: 10px 22px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.12s;
+    font-family: inherit;
+  }
+  .btn-primary:hover { background: var(--bg); }
+  .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-back {
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: none;
+    background: none;
+    color: var(--muted);
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-back:hover { color: var(--text); }
+  .counter {
+    font-size: 13px;
+    color: var(--muted);
+    margin-left: 4px;
+  }
+
+  .step-indicator {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    letter-spacing: 0.02em;
+  }
+
+  .success-wrap { text-align: center; padding: 1rem 0; }
+  .success-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--success-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+    font-size: 26px;
+  }
+
+  .summary-list {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    max-height: 380px;
+    overflow-y: auto;
+    text-align: left;
+  }
+  .summary-item {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .summary-item:last-child { border-bottom: none; }
+  .summary-acct { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  .summary-names { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  @media (max-width: 480px) {
+    .card { padding: 1.5rem 1.25rem; }
+    .cat-grid { grid-template-columns: 1fr 1fr 1fr; }
+    .name-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="progress" id="progress"></div>
+
+  <div class="step active" id="step-name">
+    <h2>Who are you?</h2>
+    <p class="sub">Select your name to get started.</p>
+    <select id="am-select">
+      <option value="">— Select your name —</option>
+      <option>Debbie Jones</option>
+      <option>Sierra Stowe</option>
+      <option>Holli Myers</option>
+      <option>Donna Bailey</option>
+      <option>Kayla Palm</option>
+      <option>Melissa Poyorena</option>
+      <option>RoseAnn Shetler</option>
+    </select>
+    <div class="btn-row">
+      <button class="btn-primary" id="btn-name-next" disabled>Next</button>
+    </div>
+  </div>
+
+  <div class="step" id="step-category">
+    <h2>What type of accounts?</h2>
+    <p class="sub">Choose the type of accounts you manage.</p>
+    <div class="cat-grid">
+      <div class="cat-card" id="cat-commercial" onclick="selectCat('commercial')">
+        <div class="cat-icon">🏢</div>
+        <div class="cat-label">Commercial</div>
+        <div class="cat-sub">Businesses &amp; organizations</div>
+      </div>
+      <div class="cat-card" id="cat-residential" onclick="selectCat('residential')">
+        <div class="cat-icon">🏠</div>
+        <div class="cat-label">Residential</div>
+        <div class="cat-sub">Private homes</div>
+      </div>
+      <div class="cat-card" id="cat-both" onclick="selectCat('both')">
+        <div class="cat-icon">📋</div>
+        <div class="cat-label">Both</div>
+        <div class="cat-sub">Commercial &amp; residential</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-back" onclick="showStep('name',0)">Back</button>
+      <button class="btn-primary" id="btn-cat-next" disabled>Next</button>
+    </div>
+  </div>
+
+  <div class="step" id="step-accounts">
+    <h2>Which accounts are yours?</h2>
+    <p class="sub">Select all the accounts you manage.</p>
+    <div class="chip-grid" id="account-chips"></div>
+    <div class="btn-row">
+      <button class="btn-back" id="btn-accounts-back">Back</button>
+      <button class="btn-primary" id="btn-accounts-next" disabled>Next</button>
+      <span class="counter" id="account-count"></span>
+    </div>
+  </div>
+
+  <div class="step" id="step-cleaners">
+    <div class="step-indicator" id="cleaner-step-label"></div>
+    <h2 id="cleaner-account-name"></h2>
+    <p class="sub">Select everyone qualified to clean this account.</p>
+    <div class="name-grid" id="cleaner-grid"></div>
+    <div class="btn-row">
+      <button class="btn-back" id="btn-cleaners-back">Back</button>
+      <button class="btn-primary" id="btn-cleaners-next">Next account</button>
+      <span class="counter" id="cleaner-count"></span>
+    </div>
+  </div>
+
+  <div class="step" id="step-done">
+    <div class="success-wrap">
+      <div class="success-circle">✓</div>
+      <h2>Submitted!</h2>
+      <p class="sub">Here's a summary of what was recorded.</p>
+    </div>
+    <div class="summary-list" id="summary-list"></div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="resetApp()">Start over</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COMMERCIAL = ["4D Systems","Allen Funeral Home","Alliance Automation","Barkman Landscaping","Behler-Young","Communities First","Corza Medical","Creative Mobility","Elite Clean Room","Ennis Admin","Ennis Program","EP Screw","FBC - Davison","FBC Grand Blanc","Fresenius Medical Care","GHS - 4th St","GHS - BHUC","GHS - Bristol Rd","GHS - Center Rd","GHS - Children's Center","GHS - Coldwater","GHS - Grand Blanc","GHS - Lapeer Rd","GHS - Mason St","Genesee TWP Fire Station 1","Genesee TWP Fire Station 2","Genesee TWP Hall & Police Dept","Genesee TWP Library","Heart to Heart","JLM","Jim Riehl's","Loramendi","Main Manufacturing","Mainstay","Mercury Broadband","MI Electric","MI Lung & Critical Care Specialists","MI Lung - Sleep Center","MI Storage Barns","Northern Log","Oakland Psych","Owen Tree Service","Pentier","Periodontal - Flint","Periodontal - GB","Pioneer Cabinetry","River Church - Burton","River Church - Davison","River Church - Flushing","River Church - Grand Blanc","River Church - Goodrich","River Church - H Comm Center","River Church - H Pastor's Academy","River Church - Holly","River Church - Lake Orion","River Church - Walled Lake","River Church - Walled Lake Comm Center","River Church - Waterford","Roy Noye & Warren","Serra Benefits","Veit","Vector Tech","Woodside Bible Church - Lapeer"];
+
+const RESIDENTIAL = ["Beth Lowe","Carol Van Dyke","Debbie Jones","Dee Posey","Elaine Gates Jocuns","Erin Jones","Jim Durand","Joyce Tripp","Karen Forester","Kelly Crystal","Ketura Becker","Leigh Ann Stone","Marilou Fitzgerald","Marissa Mersino","Mary Ann Ramsey","Nancy Stock","Nathan Denney","Pete Serra","Susan Becker","Tammy Rheil","Tara Novak (Office)"];
+
+const CLEANERS = ["Aedan Williams","Alyssa Guralczyk","Amy Beaman","Brittany Poyorena","Carly Bahena","Carrie McBride","Cheryl Dobson","Crystal Fingerle","Cynthia Ford","Damia Cargill","Dawn Morrissey","Debbie Jones","Donna Bailey","Dora Gill","Evalynne Kirkman","Fannie Shetler","Francine Black","Grace McGlaughlin","Greg Jones","Halayna Montney","Holli Myers","Isaac Osmon","Jaden Long","Jenna Faber","Jennifer Barnes","Josie Gibson","Joyce Hetchler","Kathy Stimson","Kayla Palm","Libertad McLimans","Lydia Black","Maggie Fischer","Marisela Martinez","Melissa Poyorena","Mikaela Brewer","Nathan Myers","Owen Fox","Pam Brewer","Parker Kitts","Paul Tacy","Rachel Martin","Randy Poyorena","RoseAnn Shetler","Ryan Martin","Samantha Gregson","Sherri Sharp","Sierra Stowe","Vicki TeBeest","Wendy Stevens"];
+
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbxAncDfISlNeSaq0UWjzjTneUhyDrb0JatlPXMGxcnWIa4_h5tC9YxqKYoj-BO5xjm4/exec";
+
+let state = { manager:'', category:'', accounts:[], cleanerIdx:0, selections:{} };
+
+function updateProgress(active) {
+  const total = 5;
+  document.getElementById('progress').innerHTML = Array.from({length:total},(_,i) => {
+    let cls = i < active ? 'done' : i === active ? 'active' : '';
+    return `<div class="dot ${cls}"></div>`;
+  }).join('');
+}
+
+function showStep(id, idx) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step-' + id).classList.add('active');
+  updateProgress(idx);
+}
+
+const amSelect = document.getElementById('am-select');
+amSelect.addEventListener('change', () => {
+  document.getElementById('btn-name-next').disabled = !amSelect.value;
+});
+document.getElementById('btn-name-next').addEventListener('click', () => {
+  state.manager = amSelect.value;
+  showStep('category', 1);
+});
+
+function selectCat(cat) {
+  state.category = cat;
+  ['commercial','residential','both'].forEach(c => {
+    document.getElementById('cat-' + c).classList.toggle('selected', c === cat);
+  });
+  document.getElementById('btn-cat-next').disabled = false;
+}
+document.getElementById('btn-cat-next').addEventListener('click', () => {
+  state.accounts = [];
+  buildAccountChips();
+  showStep('accounts', 2);
+});
+
+function buildAccountChips() {
+  let list;
+  if (state.category === 'commercial') list = COMMERCIAL;
+  else if (state.category === 'residential') list = RESIDENTIAL;
+  else list = [...COMMERCIAL, ...RESIDENTIAL].sort((a,b) => a.localeCompare(b));
+  const grid = document.getElementById('account-chips');
+  grid.innerHTML = '';
+  list.forEach(a => {
+    const chip = document.createElement('div');
+    chip.className = 'chip' + (state.accounts.includes(a) ? ' selected' : '');
+    chip.textContent = a;
+    chip.addEventListener('click', () => {
+      chip.classList.toggle('selected');
+      if (chip.classList.contains('selected')) { if (!state.accounts.includes(a)) state.accounts.push(a); }
+      else { state.accounts = state.accounts.filter(x => x !== a); }
+      updateAccountCount();
+    });
+    grid.appendChild(chip);
+  });
+  updateAccountCount();
+}
+
+function updateAccountCount() {
+  const n = state.accounts.length;
+  document.getElementById('account-count').textContent = n ? `${n} selected` : '';
+  document.getElementById('btn-accounts-next').disabled = n === 0;
+}
+
+document.getElementById('btn-accounts-back').addEventListener('click', () => showStep('category', 1));
+document.getElementById('btn-accounts-next').addEventListener('click', () => {
+  state.cleanerIdx = 0;
+  showCleanerStep();
+  showStep('cleaners', 3);
+});
+
+function showCleanerStep() {
+  const acct = state.accounts[state.cleanerIdx];
+  const total = state.accounts.length;
+  document.getElementById('cleaner-step-label').textContent = `Account ${state.cleanerIdx + 1} of ${total}`;
+  document.getElementById('cleaner-account-name').textContent = acct;
+  const selected = state.selections[acct] || [];
+  const grid = document.getElementById('cleaner-grid');
+  grid.innerHTML = '';
+  CLEANERS.forEach(name => {
+    const btn = document.createElement('button');
+    btn.className = 'name-btn' + (selected.includes(name) ? ' selected' : '');
+    btn.innerHTML = `<span class="check-circle">${selected.includes(name) ? '✓' : ''}</span><span>${name}</span>`;
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('selected');
+      const isSel = btn.classList.contains('selected');
+      btn.querySelector('.check-circle').textContent = isSel ? '✓' : '';
+      if (!state.selections[acct]) state.selections[acct] = [];
+      if (isSel) state.selections[acct].push(name);
+      else state.selections[acct] = state.selections[acct].filter(x => x !== name);
+      updateCleanerCount(acct);
+    });
+    grid.appendChild(btn);
+  });
+  const isLast = state.cleanerIdx === total - 1;
+  document.getElementById('btn-cleaners-next').textContent = isLast ? 'Submit' : 'Next account';
+  updateCleanerCount(acct);
+}
+
+function updateCleanerCount(acct) {
+  const n = (state.selections[acct] || []).length;
+  document.getElementById('cleaner-count').textContent = n ? `${n} selected` : '';
+}
+
+document.getElementById('btn-cleaners-back').addEventListener('click', () => {
+  if (state.cleanerIdx === 0) showStep('accounts', 2);
+  else { state.cleanerIdx--; showCleanerStep(); }
+});
+
+document.getElementById('btn-cleaners-next').addEventListener('click', async () => {
+  if (state.cleanerIdx < state.accounts.length - 1) {
+    state.cleanerIdx++;
+    showCleanerStep();
+  } else {
+    await saveData();
+    buildSummary();
+    showStep('done', 4);
+  }
+});
+
+async function saveData() {
+  const rows = [];
+  state.accounts.forEach(acct => {
+    const cleaners = (state.selections[acct] || []);
+    cleaners.forEach(cleaner => {
+      rows.push({ manager: state.manager, account: acct, cleaner: cleaner });
+    });
+    if (cleaners.length === 0) {
+      rows.push({ manager: state.manager, account: acct, cleaner: '' });
+    }
+  });
+  try {
+    await fetch(SHEET_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ manager: state.manager, rows: rows })
+    });
+  } catch(e) {
+    console.error('Save failed', e);
+  }
+}
+
+function buildSummary() {
+  document.getElementById('summary-list').innerHTML = state.accounts.map(acct => {
+    const names = (state.selections[acct] || []);
+    return `<div class="summary-item">
+      <div class="summary-acct">${acct}</div>
+      <div class="summary-names">${names.length ? names.join(', ') : 'No cleaners selected'}</div>
+    </div>`;
+  }).join('');
+}
+
+function resetApp() {
+  state = { manager:'', category:'', accounts:[], cleanerIdx:0, selections:{} };
+  amSelect.value = '';
+  document.getElementById('btn-name-next').disabled = true;
+  document.getElementById('btn-cat-next').disabled = true;
+  ['commercial','residential','both'].forEach(c => document.getElementById('cat-' + c).classList.remove('selected'));
+  showStep('name', 0);
+}
+
+updateProgress(0);
+</script>
+</body>
+</html>
