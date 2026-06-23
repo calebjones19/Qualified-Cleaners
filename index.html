@@ -479,6 +479,9 @@ document.getElementById('btn-cleaners-next').addEventListener('click', async () 
     state.cleanerIdx++;
     showCleanerStep();
   } else {
+    const btn = document.getElementById('btn-cleaners-next');
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
     await saveData();
     buildSummary();
     showStep('done', 4);
